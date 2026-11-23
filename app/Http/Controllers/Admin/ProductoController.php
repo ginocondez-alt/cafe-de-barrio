@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Categoria;
 use App\Models\Producto;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class ProductoController extends Controller
 {
@@ -13,10 +16,33 @@ class ProductoController extends Controller
     {
         return [
             'categoria_id' => 'required|exists:categorias,id',
-            'nombre'       => 'required|max:100',
-            'descripcion'  => 'required|max:500',
-            'precio'       => 'required|numeric|min:0|max:9999999',
+            'nombre' => 'required|max:100',
+            'descripcion' => 'required|max:500',
+            'precio' => 'required|numeric|min:0|max:9999999',
+            'imagen' => 'nullable|image|mimes:jpeg|extensions:jpeg|max:2048',
         ];
+    }
+
+    /**
+     * Guarda la imagen en storage/app/public/productos y actualiza la ruta del producto.
+     */
+    private function guardarImagen(Request $request, Producto $producto): void
+    {
+        if (! $request->hasFile('imagen')) {
+            return;
+        }
+
+        $imagenAnterior = $producto->imagen;
+        $producto->imagen = $request->file('imagen')->storeAs(
+            'productos',
+            Str::random(40).'.jpeg',
+            'public'
+        );
+        $producto->save();
+
+        if ($imagenAnterior) {
+            Storage::disk('public')->delete($imagenAnterior);
+        }
     }
 
     public function index(Request $request)
@@ -28,7 +54,7 @@ class ProductoController extends Controller
             ->get();
 
         return view('admin.productos.index', [
-            'productos'  => $productos,
+            'productos' => $productos,
             'categorias' => Categoria::orderBy('nombre')->get(),
         ]);
     }
@@ -42,7 +68,10 @@ class ProductoController extends Controller
 
     public function store(Request $request)
     {
-        Producto::create($request->validate($this->reglas()));
+        $datos = $request->validate($this->reglas());
+
+        $producto = Producto::create(Arr::except($datos, ['imagen']));
+        $this->guardarImagen($request, $producto);
 
         return redirect()->route('admin.productos.index')
             ->with('exito', 'Producto creado.');
@@ -51,14 +80,17 @@ class ProductoController extends Controller
     public function edit(Producto $producto)
     {
         return view('admin.productos.edit', [
-            'producto'   => $producto,
+            'producto' => $producto,
             'categorias' => Categoria::orderBy('nombre')->get(),
         ]);
     }
 
     public function update(Request $request, Producto $producto)
     {
-        $producto->update($request->validate($this->reglas()));
+        $datos = $request->validate($this->reglas());
+
+        $producto->update(Arr::except($datos, ['imagen']));
+        $this->guardarImagen($request, $producto);
 
         return redirect()->route('admin.productos.index')
             ->with('exito', 'Producto actualizado.');

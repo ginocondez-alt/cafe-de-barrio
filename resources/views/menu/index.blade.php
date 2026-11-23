@@ -32,7 +32,7 @@
         @forelse ($productos as $producto)
             <article class="overflow-hidden rounded-2xl border border-neutral-200 bg-white">
                 @if ($producto->imagen)
-                    <img src="{{ asset('img/productos/' . $producto->imagen) }}"
+                    <img src="{{ Storage::url($producto->imagen) }}"
                          alt="{{ $producto->nombre }}" class="h-32 w-full object-cover">
                 @else
                     <div class="h-32 bg-neutral-300"></div>
