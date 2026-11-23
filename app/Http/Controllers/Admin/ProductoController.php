@@ -8,7 +8,6 @@ use App\Models\Producto;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 class ProductoController extends Controller
 {
@@ -35,7 +34,7 @@ class ProductoController extends Controller
         $imagenAnterior = $producto->imagen;
         $producto->imagen = $request->file('imagen')->storeAs(
             'productos',
-            Str::random(40).'.jpeg',
+            time().'.jpeg',
             'public'
         );
         $producto->save();

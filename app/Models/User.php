@@ -7,6 +7,7 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -31,16 +32,24 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
-    public function tieneRol(string ...$roles): bool
-{
-    return in_array($this->rol, $roles);
-}
 
-public function rutaInicio(): string
-{
-    return match ($this->rol) {
-        'administrador' => route('admin.dashboard'),
-        default         => route('menu.index'),
-    };
-}
+    public function pedidos(): HasMany
+    {
+        return $this->hasMany(Pedido::class);
+    }
+
+    public function tieneRol(string ...$roles): bool
+    {
+        return in_array($this->rol, $roles);
+    }
+
+    public function rutaInicio(): string
+    {
+        return match ($this->rol) {
+            'administrador' => route('admin.dashboard'),
+            'cocina' => route('cocina.pedidos.index'),
+            'caja' => route('caja.pedidos.index'),
+            default => route('menu.index'),
+        };
+    }
 }

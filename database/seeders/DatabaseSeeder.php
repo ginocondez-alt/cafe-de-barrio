@@ -71,5 +71,6 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $this->call(HorarioSeeder::class);
+        $this->call(PedidoSeeder::class);
     }
 }
