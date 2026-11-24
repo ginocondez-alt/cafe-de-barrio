@@ -15,17 +15,28 @@
 
     <nav class="flex gap-8 text-sm">
         <a href="{{ route('inicio') }}" class="{{ request()->routeIs('inicio') ? 'text-blue-400' : 'text-white' }}">Inicio</a>
-        <a href="{{ route('menu.index') }}" class="{{ request()->routeIs('menu.*') ? 'text-blue-400' : 'text-white' }}">Menú</a>
-        <a href="{{ route('nosotros') }}" class="{{ request()->routeIs('nosotros') ? 'text-blue-400' : 'text-white' }}">Nosotros</a>
+        @if (! auth()->user()?->tieneRol('cocina'))
+            <a href="{{ route('menu.index') }}" class="{{ request()->routeIs('menu.*') ? 'text-blue-400' : 'text-white' }}">Menú</a>
+            <a href="{{ route('nosotros') }}" class="{{ request()->routeIs('nosotros') ? 'text-blue-400' : 'text-white' }}">Nosotros</a>
+        @endif
         @auth
-            <a href="#" class="text-white">Mis pedidos</a>
+            @unless (auth()->user()->tieneRol('cocina'))
+                <a href="{{ route('pedidos.index') }}"
+                   class="{{ request()->routeIs('pedidos.*') ? 'text-blue-400' : 'text-white' }}">Mis pedidos</a>
+            @endunless
+            @if (auth()->user()->tieneRol('cocina'))
+                <a href="{{ route('cocina.pedidos.index') }}"
+                   class="{{ request()->routeIs('cocina.*') ? 'text-blue-400' : 'text-white' }}">Cocina</a>
+            @endif
+            @if (auth()->user()->tieneRol('caja'))
+                <a href="{{ route('caja.pedidos.index') }}"
+                   class="{{ request()->routeIs('caja.*') ? 'text-blue-400' : 'text-white' }}">Caja</a>
+            @endif
+            @if (auth()->user()->tieneRol('administrador'))
+                <a href="{{ route('admin.dashboard') }}"
+                   class="{{ request()->routeIs('admin.*') ? 'text-blue-400' : 'text-white' }}">Administrar</a>
+            @endif
         @endauth
-        @auth
-    @if (auth()->user()->tieneRol('administrador'))
-        <a href="{{ route('admin.dashboard') }}"
-           class="{{ request()->routeIs('admin.*') ? 'text-blue-400' : 'text-white' }}">Administrar</a>
-    @endif
-@endauth
     </nav>
 
     <div class="flex items-center gap-2 text-xs">

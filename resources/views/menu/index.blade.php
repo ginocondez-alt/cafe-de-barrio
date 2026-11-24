@@ -3,6 +3,8 @@
 @section('titulo', 'Menú · Café de Barrio')
 
 @section('contenido')
+    @include('partials.exito')
+
     <h1 class="mb-5 text-center text-xl font-semibold">Nuestro menú</h1>
 
     <form method="GET" action="{{ route('menu.index') }}" class="mb-4 flex gap-2">
@@ -43,6 +45,16 @@
                     <span class="text-xs text-neutral-500">{{ $producto->categoria->nombre }}</span>
                     <p class="my-1.5 text-sm text-neutral-600">{{ $producto->descripcion }}</p>
                     <span class="font-bold">${{ number_format($producto->precio, 0, ',', '.') }}</span>
+
+                    @auth
+                        <form method="POST" action="{{ route('pedidos.agregar', $producto) }}" class="mt-4">
+                            @csrf
+                            <button type="submit"
+                                    class="w-full rounded-full bg-black px-5 py-2.5 text-sm font-semibold text-white hover:bg-neutral-800">
+                                Agregar a mi pedido
+                            </button>
+                        </form>
+                    @endauth
                 </div>
             </article>
         @empty

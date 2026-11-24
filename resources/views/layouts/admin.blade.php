@@ -10,6 +10,7 @@
                     ['admin.productos.index',  'Menú'],
                     ['admin.usuarios.index', 'Usuarios'],
                     ['admin.horarios.index', 'Horarios'],
+                    ['admin.solicitudes.index', 'Solicitudes'],
                 ];
             @endphp
 
