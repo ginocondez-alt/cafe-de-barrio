@@ -11,6 +11,8 @@ use App\Http\Controllers\PedidoController;
 use App\Http\Controllers\ProductoController;
 use App\Models\Horario;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\SolicitudController;
+use App\Http\Controllers\Admin\SolicitudController as AdminSolicitudController;
 
 // Rutas para la página de inicio
 Route::view('/', 'inicio')->name('inicio');
@@ -46,6 +48,9 @@ Route::get('/nosotros', function () {
     ]);
 })->name('nosotros');
 
+Route::post('/solicitudes', [SolicitudController::class, 'store'])
+    ->name('solicitudes.store');
+
 // Rutas para usuarios autenticados con rol de administrador
 Route::middleware(['auth', 'rol:administrador'])
     ->prefix('admin')
@@ -56,6 +61,7 @@ Route::middleware(['auth', 'rol:administrador'])
         Route::resource('productos', AdminProductoController::class)->except('show'); // Esto crea rutas para index, create, store, edit, update y destroy
         Route::resource('usuarios', AdminUsuarioController::class)->except('show'); // Esto crea rutas para index, create, store, edit, update y destroy
         Route::resource('horarios', AdminHorarioController::class)->except('show'); // Esto crea rutas para index, create, store, edit, update y destroy
+        Route::get('/solicitudes', [AdminSolicitudController::class, 'index'])->name('solicitudes.index'); //esta ruta para que el administrador pueda acceder a la sección de solicitudes. 
     });
 
 // Rutas para usuarios con rol de cocina
