@@ -8,9 +8,9 @@
 
     <h1 class="mb-5 text-center text-xl font-semibold">Mis pedidos</h1>
 
-    @if ($pedidos->contains('estado', \App\Models\Pedido::FINALIZADO))
-        <div class="mb-4 rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
-            Tenés pedidos listos para retirar.
+    @if ($pedidos->contains('estado', \App\Models\Pedido::EN_CAJA))
+        <div class="mb-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            Tenés pedidos en caja. Te los entregan en el mostrador.
         </div>
     @endif
 
@@ -26,8 +26,8 @@
                     'bg-neutral-200 text-neutral-600' => $pedido->estado === \App\Models\Pedido::PENDIENTE,
                     'bg-amber-100 text-amber-800' => $pedido->estado === \App\Models\Pedido::CONFIRMADO,
                     'bg-blue-100 text-blue-800' => $pedido->estado === \App\Models\Pedido::PREPARANDO,
-                    'bg-green-100 text-green-800' => $pedido->estado === \App\Models\Pedido::FINALIZADO,
-                    'bg-neutral-200 text-neutral-600' => $pedido->estado === \App\Models\Pedido::RETIRADO,
+                    'bg-indigo-100 text-indigo-800' => $pedido->estado === \App\Models\Pedido::EN_CAJA,
+                    'bg-green-100 text-green-800' => $pedido->estado === \App\Models\Pedido::RETIRADO,
                     'bg-red-100 text-red-800' => $pedido->estado === \App\Models\Pedido::CANCELADO,
                 ])>
                     {{ $pedido->estadoTexto() }}
@@ -76,16 +76,30 @@
                     <p class="font-bold">${{ number_format($pedido->subtotal(), 0, ',', '.') }}</p>
                 </div>
 
-                @if ($pedido->esPendiente() && $pedido->items->isNotEmpty())
-                    <form method="POST" action="{{ route('pedidos.confirmar', $pedido) }}">
-                        @csrf
-                        @method('PATCH')
-                        <button type="submit"
-                                class="rounded-full bg-black px-5 py-2.5 text-sm font-semibold text-white hover:bg-neutral-800">
-                            Confirmar pedido
-                        </button>
-                    </form>
-                @endif
+                <div class="flex flex-wrap gap-2">
+                    @if ($pedido->esPendiente() && $pedido->items->isNotEmpty())
+                        <form method="POST" action="{{ route('pedidos.confirmar', $pedido) }}">
+                            @csrf
+                            @method('PATCH')
+                            <button type="submit"
+                                    class="rounded-full bg-black px-5 py-2.5 text-sm font-semibold text-white hover:bg-neutral-800">
+                                Confirmar pedido
+                            </button>
+                        </form>
+                    @endif
+
+                    @if ($pedido->esCerrado())
+                        <form method="POST" action="{{ route('pedidos.destroy', $pedido) }}"
+                              onsubmit="return confirm('¿Borrar este pedido de tu historial?')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit"
+                                    class="rounded-full border border-neutral-300 px-5 py-2.5 text-sm font-semibold text-neutral-700 hover:border-red-600 hover:text-red-600">
+                                Borrar pedido
+                            </button>
+                        </form>
+                    @endif
+                </div>
             </footer>
         </section>
     @empty

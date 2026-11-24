@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
 class Horario extends Model
 {
@@ -31,7 +32,16 @@ class Horario extends Model
             return 'Cerrado';
         }
 
-        return substr($this->apertura, 0, 5) . ' - ' . substr($this->cierre, 0, 5);
+        return self::formatearHora($this->apertura).' - '.self::formatearHora($this->cierre);
+    }
+
+    public static function formatearHora(?string $hora): string
+    {
+        if (! $hora) {
+            return '';
+        }
+
+        return Carbon::parse($hora)->format('h:i A');
     }
 
     // Lo vamos a usar cuando hagamos los pedidos.

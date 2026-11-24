@@ -29,7 +29,7 @@ class PedidoController extends Controller
     public function actualizarEstado(Request $request, Pedido $pedido): RedirectResponse
     {
         $datos = $request->validate([
-            'estado' => ['required', Rule::in([Pedido::PREPARANDO, Pedido::CANCELADO, Pedido::FINALIZADO])],
+            'estado' => ['required', Rule::in([Pedido::PREPARANDO, Pedido::EN_CAJA, Pedido::CANCELADO])],
         ]);
 
         if (! in_array($pedido->estado, [Pedido::CONFIRMADO, Pedido::PREPARANDO], true)) {
@@ -38,6 +38,10 @@ class PedidoController extends Controller
 
         $pedido->update(['estado' => $datos['estado']]);
 
-        return back()->with('exito', 'Estado del pedido actualizado.');
+        $mensaje = $datos['estado'] === Pedido::EN_CAJA
+            ? 'Pedido enviado a caja.'
+            : 'Estado del pedido actualizado.';
+
+        return back()->with('exito', $mensaje);
     }
 }

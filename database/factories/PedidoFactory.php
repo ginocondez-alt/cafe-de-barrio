@@ -45,12 +45,22 @@ class PedidoFactory extends Factory
     }
 
     /**
-     * Indicate that the order was finalized.
+     * Indicate that the order was handed over to the cashier.
      */
-    public function finalizado(): static
+    public function enCaja(): static
     {
         return $this->state(fn (array $attributes): array => [
-            'estado' => Pedido::FINALIZADO,
+            'estado' => Pedido::EN_CAJA,
+        ]);
+    }
+
+    /**
+     * Indicate that the order was handed to the customer.
+     */
+    public function entregado(): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'estado' => Pedido::RETIRADO,
         ]);
     }
 

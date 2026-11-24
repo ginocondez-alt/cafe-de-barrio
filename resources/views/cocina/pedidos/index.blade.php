@@ -7,7 +7,7 @@
     @include('partials.errores')
 
     <h1 class="mb-5 text-center text-xl font-semibold">Cocina</h1>
-    <p class="mb-6 text-center text-sm text-neutral-500">Pedidos confirmados y en preparación.</p>
+    <p class="mb-6 text-center text-sm text-neutral-500">Pedidos confirmados y en preparación. Al terminar, pasan a caja.</p>
 
     @forelse ($pedidos as $pedido)
         <section class="mb-4 overflow-hidden rounded-2xl border border-neutral-200 bg-white">
@@ -73,10 +73,10 @@
                     <form method="POST" action="{{ route('cocina.pedidos.estado', $pedido) }}">
                         @csrf
                         @method('PATCH')
-                        <input type="hidden" name="estado" value="{{ \App\Models\Pedido::FINALIZADO }}">
+                        <input type="hidden" name="estado" value="{{ \App\Models\Pedido::EN_CAJA }}">
                         <button type="submit"
                                 class="rounded-full bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700">
-                            Entregar
+                            Entregar a caja
                         </button>
                     </form>
 

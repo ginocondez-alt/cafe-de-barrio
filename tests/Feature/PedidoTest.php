@@ -243,3 +243,68 @@ it('conserva el historial cuando se elimina el producto', function () {
         'producto_id' => null,
     ]);
 });
+
+it('muestra el botón borrar solo en pedidos cerrados', function () {
+    [$cliente] = clienteConProducto();
+    $entregado = Pedido::factory()->entregado()->create(['user_id' => $cliente->id]);
+    $confirmado = Pedido::factory()->confirmado()->create(['user_id' => $cliente->id]);
+
+    $this->actingAs($cliente)->get(route('pedidos.index'))
+        ->assertOk()
+        ->assertSee(route('pedidos.destroy', $entregado), false)
+        ->assertDontSee(route('pedidos.destroy', $confirmado), false);
+});
+
+it('redirige a los visitantes al intentar borrar un pedido', function () {
+    $cliente = crearOtroCliente();
+    $pedido = Pedido::factory()->entregado()->create(['user_id' => $cliente->id]);
+
+    $this->delete(route('pedidos.destroy', $pedido))
+        ->assertRedirect(route('login'));
+
+    $this->assertModelExists($pedido);
+});
+
+it('borra un pedido cerrado y sus items', function () {
+    [$cliente, $producto] = clienteConProducto();
+    $pedido = Pedido::factory()->entregado()->create(['user_id' => $cliente->id]);
+    ItemPedido::factory()->paraProducto($producto)->create(['pedido_id' => $pedido->id]);
+
+    $this->actingAs($cliente)
+        ->from(route('pedidos.index'))
+        ->delete(route('pedidos.destroy', $pedido))
+        ->assertRedirect(route('pedidos.index'))
+        ->assertSessionHas('exito', 'Pedido borrado de tu historial.');
+
+    $this->assertModelMissing($pedido);
+    $this->assertDatabaseCount('item_pedidos', 0);
+});
+
+it('no permite borrar un pedido confirmado', function () {
+    [$cliente, $producto] = clienteConProducto();
+    $pedido = Pedido::factory()->confirmado()->create(['user_id' => $cliente->id]);
+    ItemPedido::factory()->paraProducto($producto)->create(['pedido_id' => $pedido->id]);
+
+    $this->actingAs($cliente)
+        ->from(route('pedidos.index'))
+        ->delete(route('pedidos.destroy', $pedido))
+        ->assertRedirect(route('pedidos.index'))
+        ->assertSessionHasErrors('pedido');
+
+    $this->assertModelExists($pedido);
+    $this->assertDatabaseCount('item_pedidos', 1);
+});
+
+it('no permite borrar el pedido de otro usuario', function () {
+    [$cliente, $producto] = clienteConProducto();
+    $otroCliente = crearOtroCliente();
+    $pedido = Pedido::factory()->entregado()->create(['user_id' => $otroCliente->id]);
+    ItemPedido::factory()->paraProducto($producto)->create(['pedido_id' => $pedido->id]);
+
+    $this->actingAs($cliente)
+        ->from(route('pedidos.index'))
+        ->delete(route('pedidos.destroy', $pedido))
+        ->assertForbidden();
+
+    $this->assertModelExists($pedido);
+});

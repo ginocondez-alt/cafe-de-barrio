@@ -15,10 +15,10 @@ class PedidoController extends Controller
     {
         $pedidos = Pedido::query()
             ->with(['items', 'user'])
-            ->whereIn('estado', [Pedido::CONFIRMADO, Pedido::PREPARANDO, Pedido::FINALIZADO])
+            ->whereIn('estado', [Pedido::CONFIRMADO, Pedido::PREPARANDO, Pedido::EN_CAJA])
             ->orderByRaw(
-                'CASE WHEN estado = ? THEN 0 WHEN estado = ? THEN 1 ELSE 2 END',
-                [Pedido::CONFIRMADO, Pedido::PREPARANDO]
+                'CASE WHEN estado = ? THEN 0 WHEN estado = ? THEN 1 WHEN estado = ? THEN 2 ELSE 3 END',
+                [Pedido::EN_CAJA, Pedido::CONFIRMADO, Pedido::PREPARANDO]
             )
             ->orderBy('created_at')
             ->orderBy('id')
@@ -32,19 +32,27 @@ class PedidoController extends Controller
     public function actualizarEstado(Request $request, Pedido $pedido): RedirectResponse
     {
         $datos = $request->validate([
-            'estado' => ['required', Rule::in([Pedido::PREPARANDO, Pedido::FINALIZADO, Pedido::RETIRADO])],
+            'estado' => ['required', Rule::in([Pedido::PREPARANDO, Pedido::RETIRADO])],
         ]);
 
-        if (! in_array($pedido->estado, [Pedido::CONFIRMADO, Pedido::PREPARANDO, Pedido::FINALIZADO], true)) {
+        if (! in_array($pedido->estado, [Pedido::CONFIRMADO, Pedido::PREPARANDO, Pedido::EN_CAJA], true)) {
             return back()->withErrors(['pedido' => 'Este pedido no se puede modificar desde caja.']);
         }
 
-        if ($datos['estado'] === Pedido::RETIRADO && $pedido->estado !== Pedido::FINALIZADO) {
-            return back()->withErrors(['pedido' => 'Solo los pedidos listos para retirar se pueden quitar de la lista.']);
+        if ($datos['estado'] === Pedido::PREPARANDO && $pedido->estado !== Pedido::CONFIRMADO) {
+            return back()->withErrors(['pedido' => 'Solo los pedidos confirmados se pueden enviar a preparación.']);
+        }
+
+        if ($datos['estado'] === Pedido::RETIRADO && $pedido->estado !== Pedido::EN_CAJA) {
+            return back()->withErrors(['pedido' => 'Solo los pedidos recibidos de cocina se pueden entregar.']);
         }
 
         $pedido->update(['estado' => $datos['estado']]);
 
-        return back()->with('exito', 'Estado del pedido actualizado.');
+        $mensaje = $datos['estado'] === Pedido::RETIRADO
+            ? 'Pedido entregado al cliente.'
+            : 'Estado del pedido actualizado.';
+
+        return back()->with('exito', $mensaje);
     }
 }

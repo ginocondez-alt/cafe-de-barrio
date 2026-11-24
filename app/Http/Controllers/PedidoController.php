@@ -80,6 +80,19 @@ class PedidoController extends Controller
         return back()->with('exito', 'Pedido confirmado.');
     }
 
+    public function destroy(Request $request, Pedido $pedido): RedirectResponse
+    {
+        $this->verificarPropietario($request, $pedido);
+
+        if (! $pedido->esCerrado()) {
+            return back()->withErrors(['pedido' => 'Solo podés borrar pedidos cerrados.']);
+        }
+
+        $pedido->delete();
+
+        return back()->with('exito', 'Pedido borrado de tu historial.');
+    }
+
     private function pedidoActual(Request $request): Pedido
     {
         return $request->user()->pedidos()->firstOrCreate([

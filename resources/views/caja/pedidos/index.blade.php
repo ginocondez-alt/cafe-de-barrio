@@ -7,7 +7,7 @@
     @include('partials.errores')
 
     <h1 class="mb-5 text-center text-xl font-semibold">Caja</h1>
-    <p class="mb-6 text-center text-sm text-neutral-500">Pedidos confirmados, en preparación y listos para retirar.</p>
+    <p class="mb-6 text-center text-sm text-neutral-500">Pedidos recibidos de cocina, confirmados y en preparación.</p>
 
     @forelse ($pedidos as $pedido)
         <section class="mb-4 overflow-hidden rounded-2xl border border-neutral-200 bg-white">
@@ -22,7 +22,7 @@
                     'rounded-full px-2.5 py-0.5 text-xs',
                     'bg-amber-100 text-amber-800' => $pedido->estado === \App\Models\Pedido::CONFIRMADO,
                     'bg-blue-100 text-blue-800' => $pedido->estado === \App\Models\Pedido::PREPARANDO,
-                    'bg-green-100 text-green-800' => $pedido->estado === \App\Models\Pedido::FINALIZADO,
+                    'bg-green-100 text-green-800' => $pedido->estado === \App\Models\Pedido::EN_CAJA,
                 ])>
                     {{ $pedido->estadoTexto() }}
                 </span>
@@ -71,26 +71,14 @@
                         </form>
                     @endif
 
-                    @if (in_array($pedido->estado, [\App\Models\Pedido::CONFIRMADO, \App\Models\Pedido::PREPARANDO], true))
-                        <form method="POST" action="{{ route('caja.pedidos.estado', $pedido) }}">
-                            @csrf
-                            @method('PATCH')
-                            <input type="hidden" name="estado" value="{{ \App\Models\Pedido::FINALIZADO }}">
-                            <button type="submit"
-                                    class="rounded-full bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700">
-                                Finalizado
-                            </button>
-                        </form>
-                    @endif
-
-                    @if ($pedido->estado === \App\Models\Pedido::FINALIZADO)
+                    @if ($pedido->estado === \App\Models\Pedido::EN_CAJA)
                         <form method="POST" action="{{ route('caja.pedidos.estado', $pedido) }}">
                             @csrf
                             @method('PATCH')
                             <input type="hidden" name="estado" value="{{ \App\Models\Pedido::RETIRADO }}">
                             <button type="submit"
-                                    class="rounded-full border border-neutral-300 px-4 py-2 text-sm font-semibold text-neutral-700 hover:bg-neutral-100">
-                                Quitar de la lista
+                                    class="rounded-full bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700">
+                                Entregar al cliente
                             </button>
                         </form>
                     @endif

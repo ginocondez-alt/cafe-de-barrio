@@ -91,16 +91,17 @@ it('permite a caja marcar un pedido confirmado como preparando', function () {
     expect($pedido->refresh()->estado)->toBe(Pedido::PREPARANDO);
 });
 
-it('permite a caja marcar un pedido como finalizado', function () {
+it('no permite a caja marcar un pedido como recibido de cocina', function () {
     $caja = usuarioCaja();
     $pedido = pedidoCajaConItem(Pedido::PREPARANDO);
 
     $this->actingAs($caja)
         ->from(route('caja.pedidos.index'))
-        ->patch(route('caja.pedidos.estado', $pedido), ['estado' => Pedido::FINALIZADO])
-        ->assertRedirect(route('caja.pedidos.index'));
+        ->patch(route('caja.pedidos.estado', $pedido), ['estado' => Pedido::EN_CAJA])
+        ->assertRedirect(route('caja.pedidos.index'))
+        ->assertSessionHasErrors('estado');
 
-    expect($pedido->refresh()->estado)->toBe(Pedido::FINALIZADO);
+    expect($pedido->refresh()->estado)->toBe(Pedido::PREPARANDO);
 });
 
 it('no permite a caja cancelar un pedido', function () {
@@ -121,20 +122,21 @@ it('permite a caja acceder al menú y a mis pedidos', function () {
     $this->actingAs($caja)->get(route('pedidos.index'))->assertOk();
 });
 
-it('muestra pedidos listos para retirar en caja', function () {
+it('muestra pedidos recibidos de cocina en caja', function () {
     $caja = usuarioCaja();
-    $finalizado = pedidoCajaConItem(Pedido::FINALIZADO);
+    $enCaja = pedidoCajaConItem(Pedido::EN_CAJA);
 
     $this->actingAs($caja)
         ->get(route('caja.pedidos.index'))
         ->assertOk()
-        ->assertSee('Pedido #'.$finalizado->id)
-        ->assertSee('Quitar de la lista');
+        ->assertSee('Pedido #'.$enCaja->id)
+        ->assertSee('En caja')
+        ->assertSee('Entregar al cliente');
 });
 
-it('permite a caja quitar de la lista un pedido listo para retirar', function () {
+it('permite a caja entregar al cliente un pedido recibido de cocina', function () {
     $caja = usuarioCaja();
-    $pedido = pedidoCajaConItem(Pedido::FINALIZADO);
+    $pedido = pedidoCajaConItem(Pedido::EN_CAJA);
 
     $this->actingAs($caja)
         ->from(route('caja.pedidos.index'))
@@ -145,7 +147,20 @@ it('permite a caja quitar de la lista un pedido listo para retirar', function ()
     expect($pedido->refresh()->estado)->toBe(Pedido::RETIRADO);
 });
 
-it('no permite a caja quitar de la lista un pedido que no está listo para retirar', function () {
+it('no permite a caja devolver a preparación un pedido que cocina ya envió', function () {
+    $caja = usuarioCaja();
+    $pedido = pedidoCajaConItem(Pedido::EN_CAJA);
+
+    $this->actingAs($caja)
+        ->from(route('caja.pedidos.index'))
+        ->patch(route('caja.pedidos.estado', $pedido), ['estado' => Pedido::PREPARANDO])
+        ->assertRedirect(route('caja.pedidos.index'))
+        ->assertSessionHasErrors('pedido');
+
+    expect($pedido->refresh()->estado)->toBe(Pedido::EN_CAJA);
+});
+
+it('no permite a caja entregar un pedido que no está en caja', function () {
     $caja = usuarioCaja();
     $pedido = pedidoCajaConItem(Pedido::CONFIRMADO);
 

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\HorarioController as AdminHorarioController;
 use App\Http\Controllers\Admin\ProductoController as AdminProductoController; // Esto es para evitar conflictos de nombres con el controlador de productos del administrador
+use App\Http\Controllers\Admin\SolicitudController as AdminSolicitudController;
 use App\Http\Controllers\Admin\UsuarioController as AdminUsuarioController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Caja\PedidoController as CajaPedidoController;
@@ -9,10 +10,9 @@ use App\Http\Controllers\CategoriaController;
 use App\Http\Controllers\Cocina\PedidoController as CocinaPedidoController;
 use App\Http\Controllers\PedidoController;
 use App\Http\Controllers\ProductoController;
+use App\Http\Controllers\SolicitudController;
 use App\Models\Horario;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\SolicitudController;
-use App\Http\Controllers\Admin\SolicitudController as AdminSolicitudController;
 
 // Rutas para la página de inicio
 Route::view('/', 'inicio')->name('inicio');
@@ -40,6 +40,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/mi-pedido/agregar/{producto}', [PedidoController::class, 'agregar'])->name('pedidos.agregar');
     Route::delete('/mi-pedido/items/{item}', [PedidoController::class, 'quitar'])->name('pedidos.quitar');
     Route::patch('/mis-pedidos/{pedido}/confirmar', [PedidoController::class, 'confirmar'])->name('pedidos.confirmar');
+    Route::delete('/mis-pedidos/{pedido}', [PedidoController::class, 'destroy'])->name('pedidos.destroy');
 });
 
 Route::get('/nosotros', function () {
@@ -61,7 +62,7 @@ Route::middleware(['auth', 'rol:administrador'])
         Route::resource('productos', AdminProductoController::class)->except('show'); // Esto crea rutas para index, create, store, edit, update y destroy
         Route::resource('usuarios', AdminUsuarioController::class)->except('show'); // Esto crea rutas para index, create, store, edit, update y destroy
         Route::resource('horarios', AdminHorarioController::class)->except('show'); // Esto crea rutas para index, create, store, edit, update y destroy
-        Route::get('/solicitudes', [AdminSolicitudController::class, 'index'])->name('solicitudes.index'); //esta ruta para que el administrador pueda acceder a la sección de solicitudes. 
+        Route::get('/solicitudes', [AdminSolicitudController::class, 'index'])->name('solicitudes.index'); // esta ruta para que el administrador pueda acceder a la sección de solicitudes.
     });
 
 // Rutas para usuarios con rol de cocina
